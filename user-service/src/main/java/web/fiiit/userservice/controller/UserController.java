@@ -16,8 +16,10 @@ import web.fiiit.userservice.dto.user.UserLogin;
 import web.fiiit.userservice.dto.user.UserRegister;
 import web.fiiit.userservice.dto.user.UserUpdate;
 import web.fiiit.userservice.exceptions.JwtAuthenticationException;
+import web.fiiit.userservice.model.Token;
 import web.fiiit.userservice.model.User;
 import web.fiiit.userservice.security.JwtTokenProvider;
+import web.fiiit.userservice.service.DataServiceClient;
 import web.fiiit.userservice.service.TokenService;
 import web.fiiit.userservice.service.UserService;
 
@@ -32,16 +34,18 @@ public class UserController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenService tokenService;
+    private final DataServiceClient dataServiceClient;
 
     @Autowired
     public UserController(
             UserService userService,
             JwtTokenProvider jwtTokenProvider,
-            TokenService tokenService
-    ) {
+            TokenService tokenService,
+            DataServiceClient dataServiceClient) {
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.tokenService = tokenService;
+        this.dataServiceClient = dataServiceClient;
     }
 
     @PostMapping("/register")
@@ -66,24 +70,25 @@ public class UserController {
     public ResponseEntity<UserLogin> login(
             @Validated({DtoConfiguration.OnRequest.class})
             @RequestBody
-            UserLogin userLogin
+                    UserLogin userLogin
     ) throws JwtException, AuthenticationException {
 
         UserDetails user = userService.loadUserByUsername(userLogin.getLogin());
 
-        String token = jwtTokenProvider.createToken(
+        Token token = jwtTokenProvider.createToken(
                 userLogin.getLogin(),
                 user.getAuthorities()
         );
+        token.setOwner((User) user);
 
-        UserLogin response = UserLogin.builder()
+        dataServiceClient.add(tokenService.addToken(token));
+
+        return ResponseEntity.ok(
+                UserLogin.builder()
                 .login(userLogin.getLogin())
-                .token(token)
-                .build();
-
-        tokenService.addToken((User) user, token);
-
-        return ResponseEntity.ok(response);
+                .token(token.getValue())
+                .build()
+        );
     }
 
     @GetMapping("")
@@ -91,7 +96,7 @@ public class UserController {
             summary = "Retrieve user",
             description = "Retrieve information about authenticated user"
     )
-    public ResponseEntity<User> retireve(
+    public ResponseEntity<User> retrieve(
             Authentication authentication
     ) throws JwtAuthenticationException {
         if (authentication == null) {
@@ -113,7 +118,7 @@ public class UserController {
     public ResponseEntity<User> update(
             @Valid
             @RequestBody
-            UserUpdate userUpdate,
+                    UserUpdate userUpdate,
             Authentication authentication
     ) throws JwtAuthenticationException {
         if (authentication == null) {
@@ -139,7 +144,8 @@ public class UserController {
             throw new JwtAuthenticationException("Not authenticated!", "Authorization");
         }
         tokenService.deleteAllUserTokens(authentication.getName());
-        userService.delete(authentication.getName());
+        Long id = userService.delete(authentication.getName());
+        dataServiceClient.delete(id, true);
         return new ResponseEntity<>(
                 "User " + authentication.getName() + "is deleted!",
                 HttpStatus.NO_CONTENT

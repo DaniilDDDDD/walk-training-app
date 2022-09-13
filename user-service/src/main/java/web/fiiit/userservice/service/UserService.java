@@ -235,7 +235,7 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public void delete(String username) throws EntityNotFoundException {
+    public Long delete(String username) throws EntityNotFoundException {
         Optional<User> user = userRepository.findUserByUsername(username);
         if (user.isEmpty()) {
             throw new EntityNotFoundException(
@@ -243,11 +243,13 @@ public class UserService implements UserDetailsService {
             );
         }
         userRepository.deleteUserByUsername(username);
+        return user.get().getId();
     }
 
     @Transactional
-    public void delete(User user) {
+    public Long delete(User user) {
         userRepository.delete(user);
+        return user.getId();
     }
 
     @Override

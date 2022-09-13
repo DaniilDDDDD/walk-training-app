@@ -28,7 +28,7 @@ public class DataServiceClient {
     private void init() {
         webClient = WebClient.builder()
                 .baseUrl(baseUri)
-                .defaultHeader("Authorisation", "Bearer_" + token)
+                .defaultHeader("Authorization", "Bearer_" + token)
                 .build();
     }
 
@@ -43,9 +43,13 @@ public class DataServiceClient {
         this.token = token;
     }
 
-    public void sendToken(Token token) {
-        SendTokenResponse sendTokenResponse = webClient.post().uri("api/token")
-                .body(new SendToken(token.getValue(), token.getOwner().getId()),
+    public void add(Token token) {
+        webClient.post().uri("api/token")
+                .body(new SendToken(
+                                token.getId(),
+                                token.getValue(),
+                                token.getOwner().getId()
+                        ),
                         SendToken.class)
                 .retrieve()
                 .onStatus(
@@ -58,9 +62,33 @@ public class DataServiceClient {
                         )
                 )
                 .bodyToMono(SendTokenResponse.class)
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(3)))
-                .filter(throwable -> throwable instanceof DataServiceResponseError)
-                .block();
+                .retryWhen(Retry.backoff(5, Duration.ofSeconds(3))
+                        .filter(throwable -> throwable instanceof DataServiceResponseError));
+    }
+
+    public void delete(long id, boolean byUserId) {
+        webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("api/token/")
+                        .queryParam(
+                                (byUserId) ? "userId" : "tokenId",
+                                id
+                        )
+                        .build()
+                )
+                .retrieve()
+                .onStatus(
+                        HttpStatus::is5xxServerError,
+                        response -> Mono.error(
+                                new DataServiceResponseError(
+                                        "Internal server error of data service!",
+                                        response.rawStatusCode()
+                                )
+                        )
+                )
+                .bodyToMono(SendTokenResponse.class)
+                .retryWhen(Retry.backoff(5, Duration.ofSeconds(3))
+                        .filter(throwable -> throwable instanceof DataServiceResponseError));
     }
 
 

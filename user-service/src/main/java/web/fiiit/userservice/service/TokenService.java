@@ -16,16 +16,8 @@ public class TokenService {
         this.tokenRepository = tokenRepository;
     }
 
-    public void addToken(
-            User user,
-            String value
-    ) {
-        tokenRepository.save(
-                Token.builder()
-                        .owner(user)
-                        .value(value)
-                        .build()
-        );
+    public Token addToken(Token token) {
+        return tokenRepository.save(token);
     }
 
     public void deleteAllUserTokens(String name) {

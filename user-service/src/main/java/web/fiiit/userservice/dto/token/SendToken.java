@@ -7,6 +7,8 @@ import lombok.Data;
 @AllArgsConstructor
 public class SendToken {
 
+    private Long id;
+
     private String value;
 
     private Long ownerId;

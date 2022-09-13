@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "token")
@@ -23,6 +24,9 @@ public class Token {
     @ManyToOne
     @JoinColumn(name = "owner")
     private User owner;
+
+    @Column(name = "expiration_time")
+    private Date expirationTime;
 
     public Token() {
     }

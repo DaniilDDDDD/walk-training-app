@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import web.fiiit.userservice.exceptions.JwtAuthenticationException;
 import web.fiiit.userservice.model.Role;
+import web.fiiit.userservice.model.Token;
 import web.fiiit.userservice.service.UserService;
 
 import javax.annotation.PostConstruct;
@@ -48,7 +49,7 @@ public class JwtTokenProvider {
         key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createToken(
+    public Token createToken(
             String username,
             Collection<? extends GrantedAuthority> roles
     ) throws JwtException {
@@ -57,7 +58,7 @@ public class JwtTokenProvider {
         claims.put("roles", roles);
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
-        return Jwts.builder()
+        String value = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(validity)
@@ -66,6 +67,10 @@ public class JwtTokenProvider {
                     SignatureAlgorithm.HS256
                 )
                 .compact();
+        return Token.builder()
+                .value(value)
+                .expirationTime(validity)
+                .build();
     }
 
     public Authentication getAuthentication(String token) throws UsernameNotFoundException {
