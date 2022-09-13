@@ -100,8 +100,8 @@ public class UserService implements UserDetailsService {
         user.setPassword(passwordEncoder.encode(userData.getPassword()));
         user.setFirstName(userData.getFirstName());
         user.setLastName(userData.getLastName());
-        Role role = userData.isDoctor() ? roleRepository.findRoleByName("ROLE_USER").get() :
-                roleRepository.findRoleByName("ROLE_DOCTOR").get();
+        Role role = userData.isDoctor() ? roleRepository.findRoleByName("ROLE_DOCTOR").get() :
+                roleRepository.findRoleByName("ROLE_USER").get();
         user.setRoles(List.of(role));
         user.setStatus(Status.ACTIVE);
         return userRepository.save(user);

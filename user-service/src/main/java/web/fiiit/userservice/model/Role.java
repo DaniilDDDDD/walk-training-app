@@ -2,9 +2,7 @@ package web.fiiit.userservice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -12,7 +10,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "role")
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
 @AllArgsConstructor
 public class Role implements Serializable {
@@ -28,6 +28,7 @@ public class Role implements Serializable {
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     @JsonBackReference
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @ToString.Exclude
     private List<User> users;
 
     public Role() {

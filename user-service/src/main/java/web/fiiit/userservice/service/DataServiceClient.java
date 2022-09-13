@@ -1,6 +1,5 @@
 package web.fiiit.userservice.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,9 +19,12 @@ public class DataServiceClient {
 
     private WebClient webClient;
 
-    private final String baseUri;
+    // TODO: change creation of inter service communication token
+    @Value("${dataServiceBaseUri}")
+    private String baseUri;
 
-    private final String token;
+    @Value("${dataServiceToken}")
+    private String token;
 
     @PostConstruct
     private void init() {
@@ -32,25 +34,13 @@ public class DataServiceClient {
                 .build();
     }
 
-
-    // TODO: change creation of inter service communication token
-    @Autowired
-    public DataServiceClient(
-            @Value("${dataServiceBaseUri}") String baseUri,
-            @Value("${dataServiceSecret}") String token
-    ) {
-        this.baseUri = baseUri;
-        this.token = token;
-    }
-
     public void add(Token token) {
         webClient.post().uri("api/token")
-                .body(new SendToken(
+                .bodyValue(new SendToken(
                                 token.getId(),
                                 token.getValue(),
                                 token.getOwner().getId()
-                        ),
-                        SendToken.class)
+                        ))
                 .retrieve()
                 .onStatus(
                         HttpStatus::is5xxServerError,

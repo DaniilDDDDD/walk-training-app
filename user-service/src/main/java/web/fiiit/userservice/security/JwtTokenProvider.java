@@ -54,6 +54,7 @@ public class JwtTokenProvider {
             Collection<? extends GrantedAuthority> roles
     ) throws JwtException {
 
+        // TODO: change login field to email
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("roles", roles);
         Date now = new Date();

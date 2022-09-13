@@ -1,11 +1,9 @@
 package web.fiiit.userservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.hibernate.annotations.Fetch;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,10 +15,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static javax.persistence.CascadeType.*;
-
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @Table(name = "\"user\"")
@@ -62,7 +59,7 @@ public class User implements Serializable, UserDetails {
     @JsonManagedReference
     private List<Role> roles;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Token> tokens;
 
@@ -71,7 +68,7 @@ public class User implements Serializable, UserDetails {
     private List<User> patients;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "doctor", nullable = false)
+    @JoinColumn(name = "doctor")
     private User doctor;
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)

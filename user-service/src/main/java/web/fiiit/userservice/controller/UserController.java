@@ -48,6 +48,7 @@ public class UserController {
         this.dataServiceClient = dataServiceClient;
     }
 
+
     @PostMapping("/register")
     @Operation(
             summary = "Register",
@@ -61,6 +62,7 @@ public class UserController {
                 HttpStatus.CREATED
         );
     }
+
 
     @PostMapping("/login")
     @Operation(
@@ -85,11 +87,18 @@ public class UserController {
 
         return ResponseEntity.ok(
                 UserLogin.builder()
-                .login(userLogin.getLogin())
-                .token(token.getValue())
-                .build()
+                        .login(userLogin.getLogin())
+                        .token(token.getValue())
+                        .build()
         );
     }
+    // TODO: create token refreshing endpoint
+//    @GetMapping("refresh")
+//    @Operation(
+//            summary = "Refresh",
+//            description = "Refresh user's token"
+//    )
+//    public ResponseEntity<>
 
     @GetMapping("")
     @Operation(
