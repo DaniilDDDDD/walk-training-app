@@ -1,9 +1,8 @@
-package web.fiiit.userservice.exceptions;
+package web.fiiit.userservice.exception;
 
 import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -11,20 +10,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import web.fiiit.userservice.dto.error.FieldExceptionResponse;
-import web.fiiit.userservice.dto.error.NoFieldExceptionResponse;
 import web.fiiit.userservice.validation.ValidationErrorResponse;
 import web.fiiit.userservice.validation.Violation;
 
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
-import javax.servlet.ServletException;
 import javax.validation.ConstraintViolationException;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -7,7 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import web.fiiit.userservice.dto.error.NoFieldExceptionResponse;
-import web.fiiit.userservice.exceptions.JwtAuthenticationException;
+import web.fiiit.userservice.exception.JwtAuthenticationException;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;

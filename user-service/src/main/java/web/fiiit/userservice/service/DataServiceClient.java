@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 import web.fiiit.userservice.dto.token.SendToken;
 import web.fiiit.userservice.dto.token.SendTokenResponse;
-import web.fiiit.userservice.exceptions.DataServiceResponseError;
+import web.fiiit.userservice.exception.DataServiceResponseError;
 import web.fiiit.userservice.model.Token;
 
 import javax.annotation.PostConstruct;
@@ -23,13 +23,16 @@ public class DataServiceClient {
     @Value("${dataServiceBaseUri}")
     private String baseUri;
 
+    @Value("${dataServiceApiVersion}")
+    private String apiVersion;
+
     @Value("${dataServiceToken}")
     private String token;
 
     @PostConstruct
     private void init() {
         webClient = WebClient.builder()
-                .baseUrl(baseUri)
+                .baseUrl(baseUri + apiVersion + "/")
                 .defaultHeader("Authorization", "Bearer_" + token)
                 .build();
     }
@@ -39,7 +42,8 @@ public class DataServiceClient {
                 .bodyValue(new SendToken(
                                 token.getId(),
                                 token.getValue(),
-                                token.getOwner().getId()
+                                token.getOwner().getId(),
+                                token.getExpirationTime()
                         ))
                 .retrieve()
                 .onStatus(

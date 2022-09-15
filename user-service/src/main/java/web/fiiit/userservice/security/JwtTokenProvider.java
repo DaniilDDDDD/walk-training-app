@@ -10,7 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import web.fiiit.userservice.exceptions.JwtAuthenticationException;
+import web.fiiit.userservice.exception.JwtAuthenticationException;
 import web.fiiit.userservice.model.Role;
 import web.fiiit.userservice.model.Token;
 import web.fiiit.userservice.service.UserService;

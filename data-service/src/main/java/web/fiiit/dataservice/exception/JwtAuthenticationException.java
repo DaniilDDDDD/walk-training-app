@@ -1,4 +1,4 @@
-package web.fiiit.userservice.exceptions;
+package web.fiiit.dataservice.exception;
 
 import javax.naming.AuthenticationException;
 

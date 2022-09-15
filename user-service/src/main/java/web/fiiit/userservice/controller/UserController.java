@@ -15,7 +15,7 @@ import web.fiiit.userservice.config.DtoConfiguration;
 import web.fiiit.userservice.dto.user.UserLogin;
 import web.fiiit.userservice.dto.user.UserRegister;
 import web.fiiit.userservice.dto.user.UserUpdate;
-import web.fiiit.userservice.exceptions.JwtAuthenticationException;
+import web.fiiit.userservice.exception.JwtAuthenticationException;
 import web.fiiit.userservice.model.Token;
 import web.fiiit.userservice.model.User;
 import web.fiiit.userservice.security.JwtTokenProvider;

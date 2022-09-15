@@ -7,11 +7,12 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import web.fiiit.userservice.security.JwtFilterChainConfigurer;
 import web.fiiit.userservice.security.JwtTokenProvider;
 
-@Configuration
+
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(
         securedEnabled = true,
@@ -25,6 +26,11 @@ public class SecurityConfiguration {
     @Autowired
     public SecurityConfiguration(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
+    }
+
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
