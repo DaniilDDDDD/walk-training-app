@@ -27,6 +27,6 @@ public class JwtAuthenticationConverter implements ServerAuthenticationConverter
                         .getFirst(HttpHeaders.AUTHORIZATION)
         ).filter(s -> s.startsWith("Bearer_"))
                 .map(s -> s.substring(7))
-                .map(jwtTokenProvider::getAuthentication);
+                .map(jwtTokenProvider::getEmptyAuthentication);
     }
 }

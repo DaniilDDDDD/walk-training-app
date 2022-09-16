@@ -1,9 +1,7 @@
 package web.fiiit.dataservice.security;
 
-import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import web.fiiit.dataservice.document.Token;
 import web.fiiit.dataservice.exception.JwtAuthenticationException;
@@ -23,26 +21,29 @@ public class JwtTokenProvider {
         this.tokenService = tokenService;
     }
 
-    public Authentication getAuthentication(String tokenValue) throws JwtException {
+    public Authentication getEmptyAuthentication(String tokenValue) {
         return new TokenAuthentication(tokenValue);
     }
 
-    public Authentication validateToken(TokenAuthentication tokenAuthentication) throws JwtAuthenticationException {
+    public Authentication getAuthenticationFromValidToken(Token token) {
+        return new TokenAuthentication(
+                token.getValue(),
+                token
+        );
+    }
+
+    public Authentication validateToken(TokenAuthentication tokenAuthentication) {
         Optional<Token> token = tokenService.findByValue(
                 (String) tokenAuthentication.getCredentials()
         ).blockOptional();
 
         if (token.isEmpty() || token.get().getExpirationTime().before(new Date())) {
-            throw new JwtAuthenticationException(
-                    "Jwt token is expired or invalid!",
-                    "Authorization"
-            );
+            return null;
         }
         return new TokenAuthentication(
-                (String) tokenAuthentication.getCredentials(),
+                token.get().getValue(),
                 token.get()
         );
-
     }
 
 }
