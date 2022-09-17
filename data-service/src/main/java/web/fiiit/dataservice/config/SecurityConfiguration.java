@@ -23,7 +23,7 @@ public class SecurityConfiguration {
             ServerHttpSecurity http,
             JwtAuthenticationConverter converter,
             JwtAuthenticationManager manager
-    ) throws Exception {
+    ) {
 
         AuthenticationWebFilter filter = new AuthenticationWebFilter(manager);
 

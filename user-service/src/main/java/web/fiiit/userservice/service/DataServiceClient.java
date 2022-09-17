@@ -61,9 +61,9 @@ public class DataServiceClient {
     }
 
     public void delete(long id, boolean byUserId) {
-        webClient.get()
+        webClient.delete()
                 .uri(uriBuilder -> uriBuilder
-                        .path("api/token/")
+                        .path("api/token")
                         .queryParam(
                                 (byUserId) ? "userId" : "tokenId",
                                 id

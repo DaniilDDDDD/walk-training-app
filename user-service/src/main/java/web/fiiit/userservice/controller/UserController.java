@@ -24,6 +24,7 @@ import web.fiiit.userservice.service.TokenService;
 import web.fiiit.userservice.service.UserService;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
 @RestController
@@ -73,7 +74,7 @@ public class UserController {
             @Validated({DtoConfiguration.OnRequest.class})
             @RequestBody
                     UserLogin userLogin
-    ) throws JwtException, AuthenticationException {
+    ) throws JwtException, AuthenticationException, EntityExistsException {
 
         UserDetails user = userService.loadUserByUsername(userLogin.getLogin());
 
@@ -83,7 +84,7 @@ public class UserController {
         );
         token.setOwner((User) user);
 
-        dataServiceClient.add(tokenService.addToken(token));
+        dataServiceClient.add(tokenService.create(token));
 
         return ResponseEntity.ok(
                 UserLogin.builder()
@@ -148,7 +149,7 @@ public class UserController {
     )
     public ResponseEntity<String> delete(
             Authentication authentication
-    ) throws JwtAuthenticationException {
+    ) throws JwtAuthenticationException, EntityNotFoundException {
         if (authentication == null) {
             throw new JwtAuthenticationException("Not authenticated!", "Authorization");
         }
