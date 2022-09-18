@@ -4,7 +4,6 @@ import lombok.Builder;
 import nonapi.io.github.classgraph.json.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.Period;
 import java.util.Date;
 
 @Document
@@ -17,9 +16,9 @@ public class Data {
 
     private Long ownerId;
 
-    private Date before;
+    private Date startTime;
 
-    private Date after;
+    private Date endTime;
 
     private String text;
 

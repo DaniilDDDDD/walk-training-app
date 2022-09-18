@@ -15,10 +15,10 @@ public interface DataRepository extends ReactiveMongoRepository<Data, Long> {
 
     Flux<Data> findAllByOwnerId(Long id);
 
-    Flux<Data> findDataByOwnerIdAndBeforeAfterAndAfterBefore(
+    Flux<Data> findDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
             Long id,
-            Date before,
-            Date after
+            Date startTime,
+            Date endTime
     );
 
 }

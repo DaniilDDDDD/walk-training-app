@@ -26,8 +26,8 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
         return Mono.justOrEmpty(authentication)
                 .filter(auth -> auth instanceof TokenAuthentication)
                 .cast(TokenAuthentication.class)
-                .map(jwtTokenProvider::validateToken)
-                .filter(Objects::isNull);
+                .flatMap(jwtTokenProvider::validateToken)
+                .filter(Objects::nonNull);
     }
 
 }

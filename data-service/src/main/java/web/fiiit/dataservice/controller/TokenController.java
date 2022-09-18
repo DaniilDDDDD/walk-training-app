@@ -1,5 +1,6 @@
 package web.fiiit.dataservice.controller;
 
+import com.mongodb.MongoException;
 import com.nimbusds.oauth2.sdk.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,6 +54,18 @@ public class TokenController {
                                                 t.getExpirationTime()
                                         )
                                 )
+                )
+                .onErrorResume(
+                        MongoException.class,
+                        throwable -> Mono.just(
+                                ServerResponse
+                                        .status(HttpStatus.BAD_REQUEST)
+                                        .body(
+                                                new ExceptionResponse(
+                                                        throwable.getMessage()
+                                                )
+                                        )
+                        )
                 );
     }
 
