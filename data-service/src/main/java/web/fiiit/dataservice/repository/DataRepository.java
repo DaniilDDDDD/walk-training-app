@@ -21,4 +21,19 @@ public interface DataRepository extends ReactiveMongoRepository<Data, Long> {
             Date endTime
     );
 
+    Flux<Data> findDataByOwnerIdAndStartTimeAndEndTime(
+            Long id,
+            Date startTime,
+            Date endTime
+    );
+
+    Flux<Long> deleteDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
+            Long id,
+            Date startTime,
+            Date endTime
+    );
+
+    Flux<Long> deleteAllByOwnerId(Long ownerId);
+
+
 }

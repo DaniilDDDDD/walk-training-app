@@ -1,14 +1,13 @@
 package web.fiiit.dataservice.controller;
 
 import com.mongodb.MongoException;
-import com.nimbusds.oauth2.sdk.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.function.ServerResponse;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Token;
@@ -42,10 +41,10 @@ public class TokenController {
         Mono<Token> token = tokenService.create(addToken);
 
         return token
-                .map(
+                .flatMap(
                         t -> ServerResponse
                                 .status(HttpStatus.CREATED)
-                                .body(
+                                .bodyValue(
                                         new TokenResponse(
                                                 t.getId(),
                                                 t.getRootId(),
@@ -57,15 +56,13 @@ public class TokenController {
                 )
                 .onErrorResume(
                         MongoException.class,
-                        throwable -> Mono.just(
-                                ServerResponse
-                                        .status(HttpStatus.BAD_REQUEST)
-                                        .body(
-                                                new ExceptionResponse(
-                                                        throwable.getMessage()
-                                                )
+                        throwable -> ServerResponse
+                                .status(HttpStatus.BAD_REQUEST)
+                                .bodyValue(
+                                        new ExceptionResponse(
+                                                throwable.getMessage()
                                         )
-                        )
+                                )
                 );
     }
 
@@ -80,29 +77,45 @@ public class TokenController {
     ) {
         if (tokenId != null) {
             Mono<Long> token = tokenService.deleteByRootId(tokenId);
-            return token.map(
-                    t -> ServerResponse
-                            .status(HttpStatus.NO_CONTENT)
-                            .body("Token with id " + t + " is deleted!")
-            );
+            return token
+                    .flatMap(
+                            t -> ServerResponse
+                                    .status(HttpStatus.NO_CONTENT)
+                                    .bodyValue("Token with id " + t + " is deleted!")
+                    )
+                    .onErrorResume(
+                            throwable -> ServerResponse
+                                    .status(HttpStatus.BAD_REQUEST)
+                                    .bodyValue(
+                                            new ExceptionResponse(
+                                                    throwable.getMessage()
+                                            )
+                                    )
+                    );
         }
 
         if (userId != null) {
             Flux<Long> tokens = tokenService.deleteAllByOwnerId(userId);
-            return tokens.next().map(
+            return tokens.next().flatMap(
                     t -> ServerResponse
                             .status(HttpStatus.NO_CONTENT)
-                            .body("Tokens of user " + t + " deleted!")
+                            .bodyValue("Tokens of user " + t + " deleted!")
+            ).onErrorResume(
+                    throwable -> ServerResponse
+                            .status(HttpStatus.BAD_REQUEST)
+                            .bodyValue(
+                                    new ExceptionResponse(
+                                            throwable.getMessage()
+                                    )
+                            )
             );
         }
 
-        return Mono.just(
-                ServerResponse.badRequest()
-                        .body(new ExceptionResponse(
+        return ServerResponse.badRequest()
+                .bodyValue(new ExceptionResponse(
                                 "\"userId\" or \"tokenId\" are not provided!"
-                        ))
-        );
-
+                        )
+                );
     }
 
 
