@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Token;
 import web.fiiit.dataservice.dto.error.ExceptionResponse;
-import web.fiiit.dataservice.dto.token.AddToken;
+import web.fiiit.dataservice.dto.token.TokenAdd;
 import web.fiiit.dataservice.dto.token.TokenResponse;
 import web.fiiit.dataservice.service.TokenService;
 
@@ -36,7 +36,7 @@ public class TokenController {
             description = "Add user's token with provided token's values"
     )
     public Mono<ServerResponse> add(
-            @Valid @RequestBody AddToken addToken
+            @Valid @RequestBody TokenAdd addToken
     ) {
         Mono<Token> token = tokenService.create(addToken);
 

@@ -9,11 +9,11 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Data;
-import web.fiiit.dataservice.dto.data.AddData;
+import web.fiiit.dataservice.dto.data.DataAdd;
+import web.fiiit.dataservice.dto.data.DataUpdate;
 import web.fiiit.dataservice.dto.error.ExceptionResponse;
 import web.fiiit.dataservice.service.DataService;
 
-import javax.management.InstanceAlreadyExistsException;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -34,7 +34,7 @@ public class DataController {
             summary = "Add data",
             description = "Add user's data for provided period of time"
     )
-    public Mono<ServerResponse> create(AddData addData) {
+    public Mono<ServerResponse> create(DataAdd addData) {
         Mono<Data> data = dataService.create(addData);
 
         return data
@@ -75,16 +75,36 @@ public class DataController {
                 );
     }
 
-    @PutMapping("")
+    @PutMapping("{id}")
     @Operation(
             summary = "Update data",
             description = "Update user's data with provided id"
     )
     public Mono<ServerResponse> update(
-            @RequestParam(name = "id") Long id
+            @PathVariable(name = "id") Long id,
+            @RequestBody DataUpdate dataUpdate
     ) {
-        Mono<Data> data =
+        Mono<Data> data = dataService.update(id, dataUpdate);
+        return data
+                .flatMap(
+                        d -> ServerResponse
+                                .ok()
+                                .bodyValue(d)
+                )
+                .onErrorResume(
+                        throwable -> ServerResponse
+                                .status(HttpStatus.BAD_REQUEST)
+                                .bodyValue(new ExceptionResponse(
+                                        throwable.getMessage()
+                                ))
+                );
     }
+
+    @DeleteMapping("{id}")
+    @Operation(
+            summary = "Delete data",
+            description = "Delete data by id and authenticated user id"
+    )
 
     @DeleteMapping("")
     @Operation(
@@ -117,11 +137,13 @@ public class DataController {
                                                 " is deleted!"
                                 )
                 )
-                .switchIfEmpty(
-                        ServerResponse
+                .onErrorResume(
+                        throwable -> ServerResponse
                                 .status(HttpStatus.NO_CONTENT)
                                 .bodyValue(
-                                        "No such data was in database!"
+                                        new ExceptionResponse(
+                                                throwable.getMessage()
+                                        )
                                 )
                 );
     }
@@ -144,11 +166,13 @@ public class DataController {
                                         "User " + ownerId + " data is deleted!"
                                 )
                 )
-                .switchIfEmpty(
-                        ServerResponse
+                .onErrorResume(
+                        throwable -> ServerResponse
                                 .status(HttpStatus.NO_CONTENT)
                                 .bodyValue(
-                                        "No such data was in database!"
+                                        new ExceptionResponse(
+                                                throwable.getMessage()
+                                        )
                                 )
                 );
     }

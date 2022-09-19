@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Token;
-import web.fiiit.dataservice.dto.token.AddToken;
+import web.fiiit.dataservice.dto.token.TokenAdd;
 import web.fiiit.dataservice.repository.TokenRepository;
 
 import javax.annotation.PostConstruct;
@@ -45,7 +45,7 @@ public class TokenService {
         );
     }
 
-    public Mono<Token> create(AddToken addToken) {
+    public Mono<Token> create(TokenAdd addToken) {
 
         Mono<Token> token = tokenRepository.findTokenByRootIdOrValue(
                 addToken.getRootId(),

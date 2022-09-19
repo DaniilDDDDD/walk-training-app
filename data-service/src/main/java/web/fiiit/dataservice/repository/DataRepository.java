@@ -35,5 +35,7 @@ public interface DataRepository extends ReactiveMongoRepository<Data, Long> {
 
     Flux<Long> deleteAllByOwnerId(Long ownerId);
 
+    Mono<Long> deleteDataByIdAndOwnerId(Long dataId, Long ownerId);
+
 
 }

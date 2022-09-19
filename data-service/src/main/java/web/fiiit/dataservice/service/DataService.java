@@ -3,13 +3,12 @@ package web.fiiit.dataservice.service;
 
 import com.mongodb.MongoException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Data;
-import web.fiiit.dataservice.dto.data.AddData;
-import web.fiiit.dataservice.dto.data.UpdateData;
+import web.fiiit.dataservice.dto.data.DataAdd;
+import web.fiiit.dataservice.dto.data.DataUpdate;
 import web.fiiit.dataservice.repository.DataRepository;
 
 import java.util.Date;
@@ -24,7 +23,7 @@ public class DataService {
         this.dataRepository = dataRepository;
     }
 
-    public Mono<Data> create(AddData addData) {
+    public Mono<Data> create(DataAdd addData) {
 
         Mono<Data> data = dataRepository.findDataByOwnerIdAndStartTimeAndEndTime(
                 addData.getOwnerId(),
@@ -56,7 +55,7 @@ public class DataService {
         );
     }
 
-    public Mono<Data> update(Long id, UpdateData updateData) {
+    public Mono<Data> update(Long id, DataUpdate updateData) {
 
         Mono<Data> data = dataRepository.findDataById(id);
 
@@ -83,13 +82,31 @@ public class DataService {
     public Flux<Long> deleteAllDataInPeriod(
             Long ownerId, Long start, Long end
     ) {
-        return dataRepository.deleteDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
+
+        Flux<Long> deletedIds = dataRepository.deleteDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
                 ownerId, new Date(start), new Date(end)
+        );
+
+        return deletedIds.switchIfEmpty(
+                Flux.error(new MongoException("No such data!"))
         );
     }
 
     public Flux<Long> deleteAllOwnerData(Long ownerId) {
-        return dataRepository.deleteAllByOwnerId(ownerId);
+
+        Flux<Long> dataIds = dataRepository.deleteAllByOwnerId(ownerId);
+
+        return dataIds.switchIfEmpty(
+                Flux.error(new MongoException("No such data!"))
+        );
+    }
+
+    public Mono<Long> deleteDataById(Long dataId, Long ownerId) {
+        Mono<Long> data = dataRepository.deleteDataByIdAndOwnerId(dataId, ownerId);
+
+        return data.switchIfEmpty(
+                Mono.error(new MongoException("No such data!"))
+        );
     }
 
 }

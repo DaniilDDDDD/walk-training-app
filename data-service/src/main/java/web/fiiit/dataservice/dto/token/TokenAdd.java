@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Data
 @AllArgsConstructor
-public class AddToken {
+public class TokenAdd {
 
     private Long rootId;
 

@@ -7,9 +7,7 @@ import java.util.Date;
 
 @Data
 @Builder
-public class AddData {
-
-    private Long ownerId;
+public class DataUpdate {
 
     private Date startTime;
 
