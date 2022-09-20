@@ -4,15 +4,18 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Data;
+import web.fiiit.dataservice.document.Token;
 import web.fiiit.dataservice.dto.data.DataAdd;
 import web.fiiit.dataservice.dto.data.DataUpdate;
 import web.fiiit.dataservice.dto.error.ExceptionResponse;
 import web.fiiit.dataservice.service.DataService;
+import web.fiiit.dataservice.service.TokenService;
 
 import java.time.ZoneId;
 import java.util.Date;
@@ -105,6 +108,29 @@ public class DataController {
             summary = "Delete data",
             description = "Delete data by id and authenticated user id"
     )
+    public Mono<ServerResponse> delete(
+            @PathVariable(name = "id") Long id,
+            Authentication authentication
+    ) {
+        Long ownerId = ((Token) authentication.getPrincipal()).getOwnerId();
+        Mono<Long> data = dataService.deleteDataById(id, ownerId);
+        return data.flatMap(
+                        i -> ServerResponse
+                                .status(HttpStatus.NO_CONTENT)
+                                .bodyValue(
+                                        "User " + ownerId + " data " + id + " is deleted!"
+                                )
+                )
+                .onErrorResume(
+                        throwable -> ServerResponse
+                                .badRequest()
+                                .bodyValue(
+                                        new ExceptionResponse(
+                                                throwable.getMessage()
+                                        )
+                                )
+                );
+    }
 
     @DeleteMapping("")
     @Operation(

@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 
-@Document
+@Document("store-#{@environment.getProperty('spring.data.mongodb.default-collection')}")
 @Data
 @Builder
 public class Token {
