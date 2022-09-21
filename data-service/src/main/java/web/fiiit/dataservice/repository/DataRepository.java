@@ -11,7 +11,7 @@ import java.util.Date;
 @Repository
 public interface DataRepository extends ReactiveMongoRepository<Data, Long> {
 
-    Mono<Data> findDataById(Long id);
+    Mono<Data> findDataById(String id);
 
     Flux<Data> findAllByOwnerId(Long id);
 
@@ -35,7 +35,7 @@ public interface DataRepository extends ReactiveMongoRepository<Data, Long> {
 
     Flux<Long> deleteAllByOwnerId(Long ownerId);
 
-    Mono<Long> deleteDataByIdAndOwnerId(Long dataId, Long ownerId);
+    Mono<Long> deleteDataByIdAndOwnerId(String dataId, Long ownerId);
 
 
 }

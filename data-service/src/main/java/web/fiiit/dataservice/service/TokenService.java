@@ -3,6 +3,7 @@ package web.fiiit.dataservice.service;
 import com.mongodb.MongoException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.util.BsonUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,6 +31,10 @@ public class TokenService {
     @PostConstruct
     public void init() {
 
+        if (Boolean.TRUE.equals(
+                tokenRepository.existsTokenByValue(userServiceToken
+                ).block())) return;
+
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.add(Calendar.YEAR, 100);
@@ -42,7 +47,7 @@ public class TokenService {
                         .ownerId(-1L)
                         .expirationTime(expirationDate)
                         .build()
-        );
+        ).block();
     }
 
     public Mono<Token> create(TokenAdd addToken) {
@@ -67,7 +72,7 @@ public class TokenService {
                 .cast(Token.class);
     }
 
-    public Mono<Token> findById(Long id) {
+    public Mono<Token> findById(String id) {
         return tokenRepository.findTokenById(id);
     }
 

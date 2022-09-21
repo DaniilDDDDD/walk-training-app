@@ -11,11 +11,11 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtAuthenticationConverter implements ServerAuthenticationConverter {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
     @Autowired
-    public JwtAuthenticationConverter(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
+    public JwtAuthenticationConverter(JwtAuthenticationProvider jwtAuthenticationProvider) {
+        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
     }
 
     @Override
@@ -27,6 +27,6 @@ public class JwtAuthenticationConverter implements ServerAuthenticationConverter
                         .getFirst(HttpHeaders.AUTHORIZATION)
         ).filter(s -> s.startsWith("Bearer_"))
                 .map(s -> s.substring(7))
-                .map(jwtTokenProvider::getEmptyAuthentication);
+                .map(jwtAuthenticationProvider::getEmptyAuthentication);
     }
 }

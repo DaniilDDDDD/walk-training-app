@@ -55,7 +55,7 @@ public class DataService {
         );
     }
 
-    public Mono<Data> update(Long id, DataUpdate updateData) {
+    public Mono<Data> update(String id, DataUpdate updateData) {
 
         Mono<Data> data = dataRepository.findDataById(id);
 
@@ -73,7 +73,7 @@ public class DataService {
                 .switchIfEmpty(
                         Mono.error(
                                 new MongoException(
-                                        "No Data with id " + id
+                                        "No Data with id " + id + "!"
                                 )
                         )
                 );
@@ -101,7 +101,7 @@ public class DataService {
         );
     }
 
-    public Mono<Long> deleteDataById(Long dataId, Long ownerId) {
+    public Mono<Long> deleteDataById(String dataId, Long ownerId) {
         Mono<Long> data = dataRepository.deleteDataByIdAndOwnerId(dataId, ownerId);
 
         return data.switchIfEmpty(
