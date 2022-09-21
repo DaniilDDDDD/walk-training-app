@@ -9,7 +9,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class TokenResponse {
 
-    private Long id;
+    private String id;
 
     private Long rootId;
 

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
@@ -15,7 +16,6 @@ import web.fiiit.dataservice.dto.data.DataAdd;
 import web.fiiit.dataservice.dto.data.DataUpdate;
 import web.fiiit.dataservice.dto.error.ExceptionResponse;
 import web.fiiit.dataservice.service.DataService;
-import web.fiiit.dataservice.service.TokenService;
 
 import java.time.ZoneId;
 import java.util.Date;
@@ -78,13 +78,13 @@ public class DataController {
                 );
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/{id}")
     @Operation(
             summary = "Update data",
             description = "Update user's data with provided id"
     )
     public Mono<ServerResponse> update(
-            @PathVariable(name = "id") Long id,
+            @PathVariable(name = "id") String id,
             @RequestBody DataUpdate dataUpdate
     ) {
         Mono<Data> data = dataService.update(id, dataUpdate);
@@ -103,22 +103,27 @@ public class DataController {
                 );
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     @Operation(
             summary = "Delete data",
             description = "Delete data by id and authenticated user id"
     )
     public Mono<ServerResponse> delete(
-            @PathVariable(name = "id") Long id,
-            Authentication authentication
+            @PathVariable(name = "id") String id,
+            @AuthenticationPrincipal Mono<Authentication> authentication
     ) {
-        Long ownerId = ((Token) authentication.getPrincipal()).getOwnerId();
-        Mono<Long> data = dataService.deleteDataById(id, ownerId);
-        return data.flatMap(
+
+        return authentication
+                .flatMap(
+                        auth -> dataService.deleteDataById(
+                                id,
+                                ((Token) auth.getPrincipal()).getOwnerId()
+                        )
+                ).flatMap(
                         i -> ServerResponse
                                 .status(HttpStatus.NO_CONTENT)
                                 .bodyValue(
-                                        "User " + ownerId + " data " + id + " is deleted!"
+                                        "Data " + id + " is deleted!"
                                 )
                 )
                 .onErrorResume(
@@ -135,71 +140,76 @@ public class DataController {
     @DeleteMapping("")
     @Operation(
             summary = "Delete data",
-            description = "Delete user's data for provided period of time"
+            description = "Delete all user's data or only for provided period of time"
     )
     public Mono<ServerResponse> delete(
-            @RequestParam(name = "ownerId") Long ownerId,
-            @RequestParam(name = "startTime") Long startTime,
-            @RequestParam(name = "endTime") Long endTime
+            @RequestParam(name = "startTime", required = false) Long startTime,
+            @RequestParam(name = "endTime", required = false) Long endTime,
+            @AuthenticationPrincipal Mono<Authentication> authentication
     ) {
-        Mono<Long> dataIds = dataService.deleteAllDataInPeriod(
-                ownerId, startTime, endTime).next();
 
-        return dataIds
-                .flatMap(
-                        id -> ServerResponse
-                                .status(HttpStatus.NO_CONTENT)
-                                .bodyValue(
-                                        "User " + ownerId + " data for period from " +
-                                                new Date(startTime)
-                                                        .toInstant()
-                                                        .atZone(ZoneId.systemDefault())
-                                                        .toLocalDate() +
-                                                " to " +
-                                                new Date(endTime)
-                                                        .toInstant()
-                                                        .atZone(ZoneId.systemDefault())
-                                                        .toLocalDate() +
-                                                " is deleted!"
-                                )
-                )
-                .onErrorResume(
-                        throwable -> ServerResponse
-                                .status(HttpStatus.NO_CONTENT)
-                                .bodyValue(
-                                        new ExceptionResponse(
-                                                throwable.getMessage()
-                                        )
-                                )
-                );
+        if (startTime != null && endTime != null) {
+
+            return authentication
+                    .flatMap(
+                            auth -> dataService.deleteAllDataInPeriod(
+                                    ((Token) auth.getPrincipal()).getOwnerId(),
+                                    startTime,
+                                    endTime
+                            ).next()
+                    )
+                    .flatMap(
+                            id -> ServerResponse
+                                    .status(HttpStatus.NO_CONTENT)
+                                    .bodyValue(
+                                            "Data for period from " +
+                                                    new Date(startTime)
+                                                            .toInstant()
+                                                            .atZone(ZoneId.systemDefault())
+                                                            .toLocalDate() +
+                                                    " to " +
+                                                    new Date(endTime)
+                                                            .toInstant()
+                                                            .atZone(ZoneId.systemDefault())
+                                                            .toLocalDate() +
+                                                    " is deleted!"
+                                    )
+                    )
+                    .onErrorResume(
+                            throwable -> ServerResponse
+                                    .status(HttpStatus.NO_CONTENT)
+                                    .bodyValue(
+                                            new ExceptionResponse(
+                                                    throwable.getMessage()
+                                            )
+                                    )
+                    );
+
+        } else {
+
+            return authentication
+                    .flatMap(
+                            auth -> dataService.deleteAllOwnerData(
+                                    ((Token) auth.getPrincipal()).getOwnerId()
+                            ).next()
+                    )
+                    .flatMap(
+                            id -> ServerResponse
+                                    .status(HttpStatus.NO_CONTENT)
+                                    .bodyValue(
+                                            "Data " + id + " is deleted!"
+                                    )
+                    )
+                    .onErrorResume(
+                            throwable -> ServerResponse
+                                    .status(HttpStatus.NO_CONTENT)
+                                    .bodyValue(
+                                            new ExceptionResponse(
+                                                    throwable.getMessage()
+                                            )
+                                    )
+                    );
+        }
     }
 
-    @DeleteMapping("")
-    @Operation(
-            summary = "Delete data",
-            description = "Delete user's data"
-    )
-    public Mono<ServerResponse> deleteAllUserData(
-            @RequestParam(name = "ownerId") Long ownerId
-    ) {
-        Mono<Long> dataIds = dataService.deleteAllOwnerData(ownerId).next();
-
-        return dataIds
-                .flatMap(
-                        id -> ServerResponse
-                                .status(HttpStatus.NO_CONTENT)
-                                .bodyValue(
-                                        "User " + ownerId + " data is deleted!"
-                                )
-                )
-                .onErrorResume(
-                        throwable -> ServerResponse
-                                .status(HttpStatus.NO_CONTENT)
-                                .bodyValue(
-                                        new ExceptionResponse(
-                                                throwable.getMessage()
-                                        )
-                                )
-                );
-    }
 }

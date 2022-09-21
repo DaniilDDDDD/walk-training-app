@@ -6,13 +6,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 
-@Document("store-#{@environment.getProperty('spring.data.mongodb.default-collection')}")
+@Document("data")
 @lombok.Data
 @Builder
 public class Data {
 
     @Id
-    private Long id;
+    private String id;
 
     private Long ownerId;
 

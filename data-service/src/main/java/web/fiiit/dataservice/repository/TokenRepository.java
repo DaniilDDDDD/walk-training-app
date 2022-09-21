@@ -1,6 +1,5 @@
 package web.fiiit.dataservice.repository;
 
-import nonapi.io.github.classgraph.json.Id;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
@@ -10,7 +9,9 @@ import web.fiiit.dataservice.document.Token;
 @Repository
 public interface TokenRepository extends ReactiveMongoRepository<Token, Long> {
 
-    Mono<Token> findTokenById(Long id);
+    Mono<Boolean> existsTokenByValue(String value);
+
+    Mono<Token> findTokenById(String id);
 
     Mono<Token> findTokenByRootId(Long id);
 

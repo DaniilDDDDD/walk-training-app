@@ -1,35 +1,38 @@
 package web.fiiit.dataservice.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Token;
 import web.fiiit.dataservice.service.TokenService;
 
 import java.util.Date;
-import java.util.Optional;
+import java.util.List;
+import java.util.Objects;
 
 @Component
-public class JwtTokenProvider {
+public class JwtAuthenticationProvider {
+
+    private final GrantedAuthority userAuthority = () -> "ROLE_USER";
+
+    private final GrantedAuthority serviceAuthority = () -> "ROLE_SERVICE";
 
     private final TokenService tokenService;
 
+    @Value("${dataServiceToken}")
+    private String dataServiceToken;
+
     @Autowired
-    public JwtTokenProvider(
+    public JwtAuthenticationProvider(
             TokenService tokenService) {
         this.tokenService = tokenService;
     }
 
     public Authentication getEmptyAuthentication(String tokenValue) {
         return new TokenAuthentication(tokenValue);
-    }
-
-    public Authentication getAuthenticationFromValidToken(Token token) {
-        return new TokenAuthentication(
-                token.getValue(),
-                token
-        );
     }
 
     public Mono<Authentication> validateToken(TokenAuthentication tokenAuthentication) {
@@ -43,7 +46,10 @@ public class JwtTokenProvider {
                 ).map(
                         t -> new TokenAuthentication(
                                 t.getValue(),
-                                t
+                                t,
+                                Objects.equals(t.getValue(), dataServiceToken) ?
+                                        List.of(serviceAuthority) :
+                                        List.of(userAuthority)
                         )
                 );
     }
