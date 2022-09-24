@@ -80,11 +80,11 @@ public class DataService {
                 );
     }
 
-    public Flux<Long> deleteAllDataInPeriod(
+    public Flux<Data> deleteAllDataInPeriod(
             Long ownerId, Long start, Long end
     ) {
 
-        Flux<Long> deletedIds = dataRepository.deleteDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
+        Flux<Data> deletedIds = dataRepository.deleteDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
                 ownerId, new Date(start), new Date(end)
         );
 
@@ -93,17 +93,17 @@ public class DataService {
         );
     }
 
-    public Flux<Long> deleteAllOwnerData(Long ownerId) {
+    public Flux<Data> deleteAllOwnerData(Long ownerId) {
 
-        Flux<Long> dataIds = dataRepository.deleteAllByOwnerId(ownerId);
+        Flux<Data> dataIds = dataRepository.deleteAllByOwnerId(ownerId);
 
         return dataIds.switchIfEmpty(
                 Flux.error(new MongoException("No such data!"))
         );
     }
 
-    public Mono<Long> deleteDataById(String dataId, Long ownerId) {
-        Mono<Long> data = dataRepository.deleteDataByIdAndOwnerId(dataId, ownerId);
+    public Mono<Data> deleteDataById(String dataId, Long ownerId) {
+        Mono<Data> data = dataRepository.deleteDataByIdAndOwnerId(dataId, ownerId);
 
         return data.switchIfEmpty(
                 Mono.error(new MongoException("No such data!"))

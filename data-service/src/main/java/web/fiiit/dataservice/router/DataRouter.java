@@ -23,7 +23,16 @@ public class DataRouter {
                 .andRoute(
                         POST("api/data").and(accept(MediaType.APPLICATION_JSON)),
                         dataController::create
-                ).andRoute(
+                )
+                .andRoute(
+                        PUT("api/data/{id}").and(accept(MediaType.APPLICATION_JSON)),
+                        dataController::update
+                )
+                .andRoute(
+                        DELETE("api/data/{id}"),
+                        dataController::deleteById
+                )
+                .andRoute(
                         DELETE("api/data"),
                         dataController::delete
                 );

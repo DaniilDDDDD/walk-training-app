@@ -28,15 +28,15 @@ public interface DataRepository extends ReactiveMongoRepository<Data, Long> {
             Date endTime
     );
 
-    Flux<Long> deleteDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
+    Flux<Data> deleteDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
             Long id,
             Date startTime,
             Date endTime
     );
 
-    Flux<Long> deleteAllByOwnerId(Long ownerId);
+    Flux<Data> deleteAllByOwnerId(Long ownerId);
 
-    Mono<Long> deleteDataByIdAndOwnerId(String dataId, Long ownerId);
+    Mono<Data> deleteDataByIdAndOwnerId(String dataId, Long ownerId);
 
 
 }
