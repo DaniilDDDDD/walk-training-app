@@ -3,7 +3,6 @@ package web.fiiit.dataservice.service;
 import com.mongodb.MongoException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.util.BsonUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,6 +13,7 @@ import web.fiiit.dataservice.repository.TokenRepository;
 import javax.annotation.PostConstruct;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class TokenService {
@@ -88,18 +88,18 @@ public class TokenService {
         return tokenRepository.findTokenByValue(value);
     }
 
-    public Mono<Long> deleteByRootId(Long id) {
+    public Mono<Token> deleteByRootId(Long id) {
 
-        Mono<Long> token = tokenRepository.deleteTokenByRootId(id);
+        Mono<Token> token = tokenRepository.deleteTokenByRootId(id);
 
         return token.switchIfEmpty(
                 Mono.error(new MongoException("Token with this id does not exist!"))
         );
     }
 
-    public Flux<Long> deleteAllByOwnerId(Long id) {
+    public Flux<Token> deleteAllByOwnerId(Long id) {
 
-        Flux<Long> token = tokenRepository.deleteAllByOwnerId(id);
+        Flux<Token> token = tokenRepository.deleteAllByOwnerId(id);
 
         return token.switchIfEmpty(
                 Mono.error(new MongoException("Tokens with this id do not exist!"))

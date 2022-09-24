@@ -1,7 +1,10 @@
 package web.fiiit.dataservice.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
@@ -27,12 +30,15 @@ public class SecurityConfiguration {
             JwtAuthenticationConverter converter,
             JwtAuthenticationManager manager
     ) {
-
         AuthenticationWebFilter filter = new AuthenticationWebFilter(manager);
 
         filter.setServerAuthenticationConverter(converter);
 
         return http
+                .httpBasic().disable()
+                .csrf().disable()
+//                .cors().disable()
+                .formLogin().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint(
                         (swe, e) ->
@@ -47,16 +53,12 @@ public class SecurityConfiguration {
                                 )
                 )
                 .and()
-                .authorizeExchange()
-                .pathMatchers("/api/data*").hasAnyAuthority("ROLE_USER", "ROLE_SERVICE")
-                .pathMatchers("/api/token*").hasAuthority("ROLE_SERVICE")
-//                .anyExchange().authenticated()
+                    .authorizeExchange()
+                        .pathMatchers("api/token*").permitAll()
+                        .pathMatchers("api/data*").permitAll()
+                    .anyExchange().authenticated()
                 .and()
                 .addFilterAt(filter, SecurityWebFiltersOrder.AUTHENTICATION)
-                .httpBasic().disable()
-                .csrf().disable()
-                .cors().disable()
-                .formLogin().disable()
                 .build();
     }
 

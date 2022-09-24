@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.lang.Nullable;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,10 +16,9 @@ import web.fiiit.dataservice.dto.token.TokenAdd;
 import web.fiiit.dataservice.dto.token.TokenResponse;
 import web.fiiit.dataservice.service.TokenService;
 
-import javax.validation.Valid;
+import java.util.Optional;
 
-@RestController
-@RequestMapping("api/token")
+@Component
 @Tag(name = "Token", description = "Tokens' operations")
 public class TokenController {
 
@@ -30,17 +29,19 @@ public class TokenController {
         this.tokenService = tokenService;
     }
 
-    @PostMapping("")
     @Operation(
             summary = "Create token",
             description = "Add user's token with provided token's values"
     )
     public Mono<ServerResponse> add(
-            @Valid @RequestBody TokenAdd addToken
+            ServerRequest request
     ) {
-        Mono<Token> token = tokenService.create(addToken);
+        Mono<TokenAdd> token = request.bodyToMono(TokenAdd.class);
 
         return token
+                .flatMap(
+                        tokenService::create
+                )
                 .flatMap(
                         t -> ServerResponse
                                 .status(HttpStatus.CREATED)
@@ -66,22 +67,23 @@ public class TokenController {
                 );
     }
 
-    @DeleteMapping("")
     @Operation(
             summary = "Delete",
             description = "Delete token (by tokenId if userId is not provided)"
     )
     public Mono<ServerResponse> delete(
-            @Nullable @RequestParam(name = "userId") Long userId,
-            @Nullable @RequestParam(name = "tokenId") Long tokenId
+            ServerRequest request
     ) {
-        if (tokenId != null) {
-            Mono<Long> token = tokenService.deleteByRootId(tokenId);
+
+        Optional<String> userId = request.queryParam("userId");
+        Optional<String> tokenId = request.queryParam("tokenId");
+
+        if (tokenId.isPresent()) {
+            Mono<Token> token = tokenService.deleteByRootId(Long.parseLong(tokenId.get()));
             return token
                     .flatMap(
                             t -> ServerResponse
-                                    .status(HttpStatus.NO_CONTENT)
-                                    .bodyValue("Token with id " + t + " is deleted!")
+                                    .noContent().build()
                     )
                     .onErrorResume(
                             throwable -> ServerResponse
@@ -94,26 +96,26 @@ public class TokenController {
                     );
         }
 
-        if (userId != null) {
-            Flux<Long> tokens = tokenService.deleteAllByOwnerId(userId);
-            return tokens.next().flatMap(
-                    t -> ServerResponse
-                            .status(HttpStatus.NO_CONTENT)
-                            .bodyValue("Tokens of user " + t + " deleted!")
-            ).onErrorResume(
-                    throwable -> ServerResponse
-                            .status(HttpStatus.BAD_REQUEST)
-                            .bodyValue(
-                                    new ExceptionResponse(
-                                            throwable.getMessage()
+        if (userId.isPresent()) {
+            Flux<Token> tokens = tokenService.deleteAllByOwnerId(Long.parseLong(userId.get()));
+            return tokens.next()
+                    .flatMap(
+                            t -> ServerResponse
+                                    .noContent().build()
+                    ).onErrorResume(
+                            throwable -> ServerResponse
+                                    .status(HttpStatus.BAD_REQUEST)
+                                    .bodyValue(
+                                            new ExceptionResponse(
+                                                    throwable.getMessage()
+                                            )
                                     )
-                            )
-            );
+                    );
         }
 
         return ServerResponse.badRequest()
                 .bodyValue(new ExceptionResponse(
-                                "\"userId\" or \"tokenId\" are not provided!"
+                                "'userId' or 'tokenId' are not provided!"
                         )
                 );
     }

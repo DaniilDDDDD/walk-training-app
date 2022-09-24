@@ -6,6 +6,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Token;
 
+
 @Repository
 public interface TokenRepository extends ReactiveMongoRepository<Token, Long> {
 
@@ -21,8 +22,8 @@ public interface TokenRepository extends ReactiveMongoRepository<Token, Long> {
 
     Flux<Token> findAllByOwnerId(Long id);
 
-    Mono<Long> deleteTokenByRootId(Long id);
+    Mono<Token> deleteTokenByRootId(Long id);
 
-    Flux<Long> deleteAllByOwnerId(Long id);
+    Flux<Token> deleteAllByOwnerId(Long id);
 
 }

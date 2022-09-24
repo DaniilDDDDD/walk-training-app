@@ -7,6 +7,7 @@ import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Data;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Repository
 public interface DataRepository extends ReactiveMongoRepository<Data, Long> {
@@ -16,7 +17,7 @@ public interface DataRepository extends ReactiveMongoRepository<Data, Long> {
     Flux<Data> findAllByOwnerId(Long id);
 
     Flux<Data> findDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
-            Long id,
+            Long ownerId,
             Date startTime,
             Date endTime
     );

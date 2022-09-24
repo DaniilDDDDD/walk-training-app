@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -17,11 +19,12 @@ import web.fiiit.dataservice.dto.data.DataUpdate;
 import web.fiiit.dataservice.dto.error.ExceptionResponse;
 import web.fiiit.dataservice.service.DataService;
 
+import javax.validation.constraints.NotNull;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional;
 
-@RestController
-@RequestMapping("api/data")
+@Component
 @Tag(name = "Data", description = "Data's operations")
 public class DataController {
 
@@ -32,15 +35,19 @@ public class DataController {
         this.dataService = dataService;
     }
 
-    @PostMapping("")
     @Operation(
             summary = "Add data",
             description = "Add user's data for provided period of time"
     )
-    public Mono<ServerResponse> create(DataAdd addData) {
-        Mono<Data> data = dataService.create(addData);
+    public Mono<ServerResponse> create(
+            @NotNull ServerRequest serverRequest) {
+
+        Mono<DataAdd> data = serverRequest.bodyToMono(DataAdd.class);
 
         return data
+                .flatMap(
+                        dataService::create
+                )
                 .flatMap(
                         d -> ServerResponse
                                 .status(HttpStatus.CREATED)
@@ -57,20 +64,37 @@ public class DataController {
                 );
     }
 
-    @GetMapping("")
     @Operation(
             summary = "Get data",
             description = "Get user's data for provided period of time"
     )
-    public Flux<ServerResponse> get(
-            @RequestParam(name = "ownerId") Long ownerId,
-            @RequestParam(name = "startTime") Long startTime,
-            @RequestParam(name = "endTime") Long endTime
+    public Mono<ServerResponse> get(
+            @NotNull ServerRequest request
     ) {
-        Flux<Data> data = dataService.getAllOwnerDataInPeriod(
-                ownerId, startTime, endTime);
 
-        return data
+        Optional<String> ownerId = request.queryParam("ownerId");
+
+        Optional<String> startTime = request.queryParam("startTime");
+        Optional<String> endTime = request.queryParam("endTime");
+
+        Long start = startTime.map(Long::parseLong).orElse(0L);
+        Long end = startTime.map(Long::parseLong).orElse(new Date().getTime());
+
+
+        if (ownerId.isEmpty()) {
+            return ServerResponse.badRequest()
+                    .bodyValue(
+                            new ExceptionResponse(
+                                    "'ownerId' is not provided!"
+                            )
+                    ).flux();
+        }
+
+        return dataService.getAllOwnerDataInPeriod(
+                        Long.parseLong(ownerId.get()),
+                        start,
+                        end
+                )
                 .flatMap(
                         d -> ServerResponse
                                 .ok()

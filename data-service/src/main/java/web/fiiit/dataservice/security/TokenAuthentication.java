@@ -33,8 +33,8 @@ public class TokenAuthentication implements Authentication {
             this.authorities = AuthorityUtils.NO_AUTHORITIES;
         } else {
             this.authorities = Collections.unmodifiableList(new ArrayList<>(authorities));
-            authenticated = true;
         }
+        authenticated = true;
         this.credentials = credentials;
         this.principal = token;
     }

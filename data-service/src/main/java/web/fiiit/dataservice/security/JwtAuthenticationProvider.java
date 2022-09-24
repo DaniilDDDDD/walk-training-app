@@ -2,8 +2,10 @@ package web.fiiit.dataservice.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Token;
@@ -16,9 +18,15 @@ import java.util.Objects;
 @Component
 public class JwtAuthenticationProvider {
 
-    private final GrantedAuthority userAuthority = () -> "ROLE_USER";
+    @Bean
+    private GrantedAuthority userAuthority() {
+        return new SimpleGrantedAuthority("ROLE_USER");
+    }
 
-    private final GrantedAuthority serviceAuthority = () -> "ROLE_SERVICE";
+    @Bean
+    private GrantedAuthority serviceAuthority() {
+        return new SimpleGrantedAuthority("ROLE_SERVICE");
+    }
 
     private final TokenService tokenService;
 
@@ -48,8 +56,8 @@ public class JwtAuthenticationProvider {
                                 t.getValue(),
                                 t,
                                 Objects.equals(t.getValue(), dataServiceToken) ?
-                                        List.of(serviceAuthority) :
-                                        List.of(userAuthority)
+                                        List.of(serviceAuthority()) :
+                                        List.of(userAuthority())
                         )
                 );
     }
