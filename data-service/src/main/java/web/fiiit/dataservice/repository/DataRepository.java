@@ -14,6 +14,8 @@ public interface DataRepository extends ReactiveMongoRepository<Data, Long> {
 
     Mono<Data> findDataById(String id);
 
+    Mono<Data> findDataByIdAndOwnerId(String id, Long ownerId);
+
     Flux<Data> findAllByOwnerId(Long id);
 
     Flux<Data> findDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(

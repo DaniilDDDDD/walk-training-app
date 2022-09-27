@@ -3,9 +3,7 @@ package web.fiiit.dataservice.router;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.RouterFunctions;
-import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.reactive.function.server.*;
 import web.fiiit.dataservice.controller.DataController;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.*;
@@ -14,7 +12,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class DataRouter {
 
     @Bean
-    public RouterFunction<ServerResponse> route(DataController dataController) {
+    public RouterFunction<ServerResponse> dataRouterFunction(DataController dataController) {
         return RouterFunctions
                 .route(
                         GET("api/data"),
@@ -37,5 +35,4 @@ public class DataRouter {
                         dataController::delete
                 );
     }
-
 }

@@ -47,6 +47,10 @@ public class DataService {
                 .cast(Data.class);
     }
 
+    public Mono<Data> getDataById(String id, Long ownerId) {
+        return dataRepository.deleteDataByIdAndOwnerId(id, ownerId);
+    }
+
     public Flux<Data> getAllOwnerDataInPeriod(
             Long ownerId, Long start, Long end) {
         return dataRepository.findDataByOwnerIdAndStartTimeAfterAndEndTimeBefore(
@@ -54,6 +58,31 @@ public class DataService {
                 new Date(start),
                 new Date(end)
         );
+    }
+
+    public Mono<Data> updateOwnerData(Long ownerId, String id, DataUpdate updateData) {
+
+        Mono<Data> data = dataRepository.findDataByIdAndOwnerId(id, ownerId);
+
+        return data
+                .flatMap(
+                        t -> dataRepository.save(
+                                Data.builder()
+                                        .id(t.getId())
+                                        .ownerId(t.getOwnerId())
+                                        .text(updateData.getText())
+                                        .startTime(updateData.getStartTime())
+                                        .endTime(updateData.getEndTime())
+                                        .build()
+                        )
+                )
+                .switchIfEmpty(
+                        Mono.error(
+                                new MongoException(
+                                        "No Data with id " + id + "!"
+                                )
+                        )
+                );
     }
 
     public Mono<Data> update(String id, DataUpdate updateData) {

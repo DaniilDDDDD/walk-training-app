@@ -5,12 +5,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import web.fiiit.dataservice.document.Data;
 import web.fiiit.dataservice.document.Token;
@@ -21,8 +18,8 @@ import web.fiiit.dataservice.security.TokenAuthentication;
 import web.fiiit.dataservice.service.DataService;
 
 import javax.validation.constraints.NotNull;
-import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -45,33 +42,25 @@ public class DataController {
             @NotNull ServerRequest request
     ) {
 
-        Optional<String> ownerId = request.queryParam("ownerId");
-
         Long start = request.queryParam("startTime")
                 .map(Long::parseLong).orElse(0L);
 
         Long end = request.queryParam("endTime")
                 .map(Long::parseLong).orElse(new Date().getTime());
 
-        if (ownerId.isEmpty()) {
-            return ServerResponse.badRequest()
-                    .bodyValue(
-                            new ExceptionResponse(
-                                    "'ownerId' is not provided!"
-                            )
-                    );
-        }
+        Mono<Authentication> authentication = request.principal().ofType(Authentication.class);
 
-        return dataService.getAllOwnerDataInPeriod(
-                        Long.parseLong(ownerId.get()),
-                        start,
-                        end
-                )
-                .collectList()
+        return authentication
                 .flatMap(
-                        d -> ServerResponse
-                                .ok()
-                                .bodyValue(d)
+                        auth -> dataService.getAllOwnerDataInPeriod(
+                                    ((Token) auth.getPrincipal()).getOwnerId(),
+                                    start,
+                                    end
+                            ).collectList()
+                )
+                .flatMap(
+                        data -> ServerResponse.ok()
+                                .body(data, Data.class)
                 );
     }
 
@@ -116,10 +105,16 @@ public class DataController {
 
         String id = request.pathVariable("id");
 
+        Mono<Authentication> authentication = request.principal().ofType(Authentication.class);
+        // TODO: imagine how to get ownerId from request (may be change dataService)
         return request
                 .bodyToMono(DataUpdate.class)
                 .flatMap(
-                        d -> dataService.update(id, d)
+                        data -> dataService.updateOwnerData(
+                                authentication.,
+                                id,
+                                data
+                        )
                 )
                 .flatMap(
                         d -> ServerResponse
@@ -204,7 +199,6 @@ public class DataController {
                                         )
                                 )
                 );
-
     }
 
 }

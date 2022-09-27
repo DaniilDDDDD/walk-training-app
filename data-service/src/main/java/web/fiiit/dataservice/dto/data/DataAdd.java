@@ -15,6 +15,7 @@ public class DataAdd {
 
     private Date endTime;
 
+    // TODO: add real user's data
     private String text;
 
 }

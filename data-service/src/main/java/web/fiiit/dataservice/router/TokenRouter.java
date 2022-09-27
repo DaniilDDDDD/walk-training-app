@@ -14,7 +14,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class TokenRouter {
 
     @Bean
-    public RouterFunction<ServerResponse> route(TokenController tokenController) {
+    public RouterFunction<ServerResponse> tokenRouterFunction(TokenController tokenController) {
         return RouterFunctions
                 .route(
                         POST("api/token").and(accept(MediaType.APPLICATION_JSON)),

@@ -29,6 +29,7 @@ public class TokenController {
         this.tokenService = tokenService;
     }
 
+
     @Operation(
             summary = "Create token",
             description = "Add user's token with provided token's values"
@@ -67,6 +68,7 @@ public class TokenController {
                 );
     }
 
+
     @Operation(
             summary = "Delete",
             description = "Delete token (by tokenId if userId is not provided)"
@@ -75,7 +77,7 @@ public class TokenController {
             ServerRequest request
     ) {
 
-        Optional<String> userId = request.queryParam("userId");
+        Optional<String> userId = request.queryParam("ownerId");
         Optional<String> tokenId = request.queryParam("tokenId");
 
         if (tokenId.isPresent()) {
@@ -115,7 +117,7 @@ public class TokenController {
 
         return ServerResponse.badRequest()
                 .bodyValue(new ExceptionResponse(
-                                "'userId' or 'tokenId' are not provided!"
+                                "'ownerId' or 'tokenId' are not provided!"
                         )
                 );
     }
