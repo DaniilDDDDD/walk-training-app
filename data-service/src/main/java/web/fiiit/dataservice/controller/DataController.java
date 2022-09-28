@@ -14,13 +14,11 @@ import web.fiiit.dataservice.document.Token;
 import web.fiiit.dataservice.dto.data.DataAdd;
 import web.fiiit.dataservice.dto.data.DataUpdate;
 import web.fiiit.dataservice.dto.error.ExceptionResponse;
-import web.fiiit.dataservice.security.TokenAuthentication;
 import web.fiiit.dataservice.service.DataService;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 @Tag(name = "Data", description = "Data's operations")
@@ -48,19 +46,17 @@ public class DataController {
         Long end = request.queryParam("endTime")
                 .map(Long::parseLong).orElse(new Date().getTime());
 
-        Mono<Authentication> authentication = request.principal().ofType(Authentication.class);
-
-        return authentication
+        return request.principal().ofType(Authentication.class)
                 .flatMap(
                         auth -> dataService.getAllOwnerDataInPeriod(
-                                    ((Token) auth.getPrincipal()).getOwnerId(),
-                                    start,
-                                    end
-                            ).collectList()
+                                ((Token) auth.getPrincipal()).getOwnerId(),
+                                start,
+                                end
+                        ).collectList()
                 )
                 .flatMap(
                         data -> ServerResponse.ok()
-                                .body(data, Data.class)
+                                .bodyValue(data)
                 );
     }
 
@@ -70,20 +66,24 @@ public class DataController {
             description = "Add user's data for provided period of time"
     )
     public Mono<ServerResponse> create(
-            @NotNull ServerRequest serverRequest) {
+            @NotNull ServerRequest request) {
 
-        Mono<DataAdd> data = serverRequest.bodyToMono(DataAdd.class);
-
-        return data
-                .flatMap(
-                        dataService::create
+        return request.principal().ofType(Authentication.class)
+                .map(
+                        authentication -> List.of(
+                                ((Token) authentication.getPrincipal()).getOwnerId(),
+                                request.bodyToMono(DataAdd.class)
+                        )
                 )
                 .flatMap(
-                        d -> ServerResponse
+                        element -> ((Mono<DataAdd>) element.get(1)).flatMap(
+                                data -> dataService.create(data, (Long) element.get(0))
+                        )
+                ).flatMap(
+                        data -> ServerResponse
                                 .status(HttpStatus.CREATED)
-                                .bodyValue(d)
-                )
-                .onErrorResume(
+                                .bodyValue(data)
+                ).onErrorResume(
                         throwable -> ServerResponse
                                 .status(HttpStatus.BAD_REQUEST)
                                 .bodyValue(
@@ -103,17 +103,20 @@ public class DataController {
             @NotNull ServerRequest request
     ) {
 
-        String id = request.pathVariable("id");
-
-        Mono<Authentication> authentication = request.principal().ofType(Authentication.class);
-        // TODO: imagine how to get ownerId from request (may be change dataService)
-        return request
-                .bodyToMono(DataUpdate.class)
+        return request.principal().ofType(Authentication.class)
+                .map(
+                        authentication -> List.of(
+                                ((Token) authentication.getPrincipal()).getOwnerId(),
+                                request.bodyToMono(DataUpdate.class)
+                                )
+                )
                 .flatMap(
-                        data -> dataService.updateOwnerData(
-                                authentication.,
-                                id,
-                                data
+                        element -> ((Mono<DataUpdate>) element.get(1)).flatMap(
+                                data -> dataService.updateOwnerData(
+                                        (Long) element.get(0),
+                                        request.pathVariable("id"),
+                                        data
+                                )
                         )
                 )
                 .flatMap(
@@ -139,14 +142,10 @@ public class DataController {
             @NotNull ServerRequest request
     ) {
 
-        String id = request.pathVariable("id");
-
-        return request
-                .principal()
-                .ofType(Authentication.class)
+        return request.principal().ofType(Authentication.class)
                 .flatMap(
                         auth -> dataService.deleteDataById(
-                                id,
+                                request.pathVariable("id"),
                                 ((Token) auth.getPrincipal()).getOwnerId()
                         )
                 ).flatMap(
@@ -177,9 +176,7 @@ public class DataController {
         Long end = request.queryParam("endTime")
                 .map(Long::parseLong).orElse(new Date().getTime());
 
-        Mono<Authentication> authentication = request.principal().ofType(Authentication.class);
-
-        return authentication
+        return request.principal().ofType(Authentication.class)
                 .flatMap(
                         auth -> dataService.deleteAllDataInPeriod(
                                 ((Token) auth.getPrincipal()).getOwnerId(),

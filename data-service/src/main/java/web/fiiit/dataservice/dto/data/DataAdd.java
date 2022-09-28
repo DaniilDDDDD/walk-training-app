@@ -9,8 +9,6 @@ import java.util.Date;
 @Builder
 public class DataAdd {
 
-    private Long ownerId;
-
     private Date startTime;
 
     private Date endTime;

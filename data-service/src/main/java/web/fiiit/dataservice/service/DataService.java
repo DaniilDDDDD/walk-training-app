@@ -24,10 +24,10 @@ public class DataService {
         this.dataRepository = dataRepository;
     }
 
-    public Mono<Data> create(DataAdd addData) {
+    public Mono<Data> create(DataAdd addData, Long ownerId) {
 
         Mono<Data> data = dataRepository.findDataByOwnerIdAndStartTimeAndEndTime(
-                addData.getOwnerId(),
+                ownerId,
                 addData.getStartTime(),
                 addData.getEndTime()
         ).next();
@@ -37,7 +37,7 @@ public class DataService {
                 .switchIfEmpty(
                         dataRepository.save(
                                 Data.builder()
-                                        .ownerId(addData.getOwnerId())
+                                        .ownerId(ownerId)
                                         .text(addData.getText())
                                         .startTime(addData.getStartTime())
                                         .endTime(addData.getEndTime())
@@ -46,6 +46,7 @@ public class DataService {
                 )
                 .cast(Data.class);
     }
+
 
     public Mono<Data> getDataById(String id, Long ownerId) {
         return dataRepository.deleteDataByIdAndOwnerId(id, ownerId);
@@ -60,6 +61,7 @@ public class DataService {
         );
     }
 
+
     public Mono<Data> updateOwnerData(Long ownerId, String id, DataUpdate updateData) {
 
         Mono<Data> data = dataRepository.findDataByIdAndOwnerId(id, ownerId);
@@ -70,9 +72,18 @@ public class DataService {
                                 Data.builder()
                                         .id(t.getId())
                                         .ownerId(t.getOwnerId())
-                                        .text(updateData.getText())
-                                        .startTime(updateData.getStartTime())
-                                        .endTime(updateData.getEndTime())
+                                        .text(
+                                                updateData.getText() != null ?
+                                                        updateData.getText() : t.getText()
+                                        )
+                                        .startTime(
+                                                updateData.getStartTime() != null ?
+                                                        updateData.getStartTime() : t.getStartTime()
+                                        )
+                                        .endTime(
+                                                updateData.getEndTime() != null ?
+                                                        updateData.getEndTime() : t.getEndTime()
+                                        )
                                         .build()
                         )
                 )
@@ -94,9 +105,18 @@ public class DataService {
                                 Data.builder()
                                         .id(t.getId())
                                         .ownerId(t.getOwnerId())
-                                        .text(updateData.getText())
-                                        .startTime(updateData.getStartTime())
-                                        .endTime(updateData.getEndTime())
+                                        .text(
+                                                updateData.getText() != null ?
+                                                        updateData.getText() : t.getText()
+                                        )
+                                        .startTime(
+                                                updateData.getStartTime() != null ?
+                                                        updateData.getStartTime() : t.getStartTime()
+                                        )
+                                        .endTime(
+                                                updateData.getEndTime() != null ?
+                                                        updateData.getEndTime() : t.getEndTime()
+                                        )
                                         .build()
                         )
                 )
@@ -109,6 +129,15 @@ public class DataService {
                 );
     }
 
+
+    public Mono<Data> deleteDataById(String dataId, Long ownerId) {
+        Mono<Data> data = dataRepository.deleteDataByIdAndOwnerId(dataId, ownerId);
+
+        return data.switchIfEmpty(
+                Mono.error(new MongoException("No such data!"))
+        );
+    }
+
     public Flux<Data> deleteAllDataInPeriod(
             Long ownerId, Long start, Long end
     ) {
@@ -119,23 +148,6 @@ public class DataService {
 
         return deletedIds.switchIfEmpty(
                 Flux.error(new MongoException("No such data!"))
-        );
-    }
-
-    public Flux<Data> deleteAllOwnerData(Long ownerId) {
-
-        Flux<Data> dataIds = dataRepository.deleteAllByOwnerId(ownerId);
-
-        return dataIds.switchIfEmpty(
-                Flux.error(new MongoException("No such data!"))
-        );
-    }
-
-    public Mono<Data> deleteDataById(String dataId, Long ownerId) {
-        Mono<Data> data = dataRepository.deleteDataByIdAndOwnerId(dataId, ownerId);
-
-        return data.switchIfEmpty(
-                Mono.error(new MongoException("No such data!"))
         );
     }
 
