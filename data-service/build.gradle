@@ -32,6 +32,8 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
+    implementation 'io.mongock:mongodb-reactive-driver:5.1.6'
+
     implementation 'org.springdoc:springdoc-openapi-ui:1.6.11'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.3'
