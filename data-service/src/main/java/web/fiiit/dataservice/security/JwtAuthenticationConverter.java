@@ -21,11 +21,11 @@ public class JwtAuthenticationConverter implements ServerAuthenticationConverter
     @Override
     public Mono<Authentication> convert(ServerWebExchange exchange) {
         return Mono.justOrEmpty(
-                exchange
-                        .getRequest()
-                        .getHeaders()
-                        .getFirst(HttpHeaders.AUTHORIZATION)
-        ).filter(s -> s.startsWith("Bearer_"))
+                        exchange
+                                .getRequest()
+                                .getHeaders()
+                                .getFirst(HttpHeaders.AUTHORIZATION)
+                ).filter(s -> s.startsWith("Bearer_"))
                 .map(s -> s.substring(7))
                 .map(jwtAuthenticationProvider::getEmptyAuthentication);
     }

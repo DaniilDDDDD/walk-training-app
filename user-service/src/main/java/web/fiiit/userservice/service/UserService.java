@@ -1,11 +1,13 @@
 package web.fiiit.userservice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import web.fiiit.userservice.dto.user.UserLogin;
 import web.fiiit.userservice.dto.user.UserRegister;
 import web.fiiit.userservice.dto.user.UserUpdate;
 import web.fiiit.userservice.dto.user.UserUpdateByAdmin;
@@ -15,10 +17,12 @@ import web.fiiit.userservice.model.User;
 import web.fiiit.userservice.repository.RoleRepository;
 import web.fiiit.userservice.repository.UserRepository;
 
+import javax.persistence.Access;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -40,22 +44,6 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    public User findById(
-            Long id
-    ) throws EntityNotFoundException {
-        Optional<User> user = userRepository.findUserById(id);
-        if (user.isEmpty()) {
-            throw new EntityNotFoundException(
-                    "User with id " + id + " is not present in database!"
-            );
-        }
-        return user.get();
-    }
-
     public User findByUsername(
             String username
     ) throws EntityNotFoundException {
@@ -69,16 +57,17 @@ public class UserService implements UserDetailsService {
         return user.get();
     }
 
-    public User findByEmail(
-            String email
-    ) throws EntityNotFoundException {
-        Optional<User> user = userRepository.findUserByEmail(email);
-        if (user.isEmpty()) {
-            throw new EntityNotFoundException(
-                    "User with email " + email + " is not present in database!"
-            );
+    public User login(
+            UserLogin userLogin
+    ) throws AccessDeniedException {
+        try {
+            UserDetails user = loadUserByUsername(userLogin.getLogin());
+            if (!Objects.equals(user.getPassword(), passwordEncoder.encode(userLogin.getPassword())))
+                throw new AccessDeniedException("Login or password is invalid!");
+            return (User) user;
+        } catch (UsernameNotFoundException e) {
+            throw new AccessDeniedException("Login or password is invalid!");
         }
-        return user.get();
     }
 
     public User create(
@@ -244,12 +233,6 @@ public class UserService implements UserDetailsService {
         }
         userRepository.deleteUserByUsername(username);
         return user.get().getId();
-    }
-
-    @Transactional
-    public Long delete(User user) {
-        userRepository.delete(user);
-        return user.getId();
     }
 
     @Override

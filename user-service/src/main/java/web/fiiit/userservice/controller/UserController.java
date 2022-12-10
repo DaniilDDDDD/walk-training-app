@@ -6,9 +6,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import web.fiiit.userservice.config.DtoConfiguration;
@@ -74,15 +76,15 @@ public class UserController {
             @Validated({DtoConfiguration.OnRequest.class})
             @RequestBody
                     UserLogin userLogin
-    ) throws JwtException, AuthenticationException, EntityExistsException {
+    ) throws JwtException, AuthenticationException, AccessDeniedException {
 
-        UserDetails user = userService.loadUserByUsername(userLogin.getLogin());
+        User user = userService.login(userLogin);
 
         Token token = jwtTokenProvider.createToken(
                 userLogin.getLogin(),
                 user.getAuthorities()
         );
-        token.setOwner((User) user);
+        token.setOwner(user);
 
         dataServiceClient.add(tokenService.create(token));
 
@@ -93,13 +95,6 @@ public class UserController {
                         .build()
         );
     }
-    // TODO: create token refreshing endpoint
-//    @GetMapping("refresh")
-//    @Operation(
-//            summary = "Refresh",
-//            description = "Refresh user's token"
-//    )
-//    public ResponseEntity<>
 
     @GetMapping("")
     @Operation(
